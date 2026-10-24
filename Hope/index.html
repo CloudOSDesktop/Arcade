@@ -66,7 +66,7 @@ input[type=range]{width:100%;accent-color:var(--ac)}
 input[type=number]{width:88px;padding:7px 10px;border-radius:12px;border:1px solid var(--ln);background:rgba(0,0,0,.4);outline:0}
 input[type=number]:focus{border-color:var(--ac)}
 .row input[type=range]{flex:1;min-width:130px;width:auto}
-#np{position:fixed;left:18px;bottom:calc(18px + var(--tbh,0px));z-index:15;display:flex;align-items:center;gap:6px;padding:8px 12px 8px 8px;border-radius:18px;background:var(--gl);border:1px solid var(--ln);max-width:min(380px,calc(100vw - 36px));transition:bottom .5s cubic-bezier(.2,.8,.2,1)}
+#np{position:fixed;left:18px;bottom:calc(18px + var(--tbh,0px));z-index:15;display:flex;align-items:center;gap:6px;padding:8px 12px 8px 8px;border-radius:18px;background:var(--gl);border:1px solid var(--ln);max-width:min(410px,calc(100vw - 36px));transition:bottom .5s cubic-bezier(.2,.8,.2,1)}
 #npa{width:46px;height:46px;border-radius:10px;flex:none;margin-right:4px;display:grid;place-items:center;font-size:22px;background:radial-gradient(120% 90% at 20% 0,hsl(var(--h,260) 85% 60%),hsl(calc(var(--h,260) + 55) 70% 26%))}
 #npa::after{content:"♪";opacity:.85}
 .nt{min-width:0;display:grid;line-height:1.25;flex:1}.nt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}.nt small{color:var(--mut);font-size:12px}
@@ -91,7 +91,11 @@ body:not(.tb) #tbi .tt{opacity:0;translate:0 22px}
 @keyframes pop{from{opacity:0;translate:0 18px;scale:.5}}
 .tt.gone{width:0;opacity:0;scale:.4;margin:0 -3px;pointer-events:none}
 #tbr{display:flex;align-items:center;gap:14px}
-.vol{display:flex;align-items:center;gap:8px;color:var(--mut)}.vol input{width:96px;accent-color:var(--ac)}
+.vol{position:relative;display:flex;align-items:center}
+#volp{position:absolute;right:-6px;bottom:100%;padding-bottom:14px;opacity:0;visibility:hidden;translate:0 8px;transition:opacity .2s,translate .3s cubic-bezier(.2,.8,.2,1),visibility 0s .3s}
+.vol:hover #volp,.vol:focus-within #volp,#volp.on{opacity:1;visibility:visible;translate:0;transition:opacity .2s,translate .3s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.vb{padding:12px 16px;border-radius:12px;background:rgba(28,26,40,.97);border:1px solid var(--ln);box-shadow:0 14px 30px -10px #000}
+.vb input{width:140px;display:block;accent-color:var(--ac)}
 #tbc{text-align:right;line-height:1.2;padding:6px 10px;border-radius:8px}#tbc b{display:block;font-size:13px}#tbc small{color:var(--mut);font-size:12px}
 #sr{position:fixed;left:50%;bottom:calc(var(--tbh,0px) + 12px);z-index:16;width:min(520px,92vw);max-height:54vh;overflow:auto;padding:10px;border-radius:16px;background:rgba(24,22,36,.95);border:1px solid var(--ln);backdrop-filter:blur(22px);translate:-50% 16px;opacity:0;visibility:hidden;transition:opacity .25s,translate .35s cubic-bezier(.2,.8,.2,1),visibility 0s .35s}
 #sr.on{opacity:1;translate:-50% 0;visibility:visible;transition:opacity .25s,translate .35s cubic-bezier(.2,.8,.2,1),visibility 0s}
@@ -105,8 +109,12 @@ body:not(.tb) #tbi .tt{opacity:0;translate:0 22px}
 button.seg.on{background:var(--ac);color:#1a0f08;font-weight:700}
 .card.pinned::before{content:"";position:absolute;top:12px;left:12px;width:10px;height:10px;border-radius:50%;background:var(--ac);box-shadow:0 0 12px var(--ac);z-index:2}
 body.tb #q{width:0;padding-left:0;padding-right:0;border-width:0;opacity:0;pointer-events:none}
-@media(max-width:860px){.wt,.vol input{display:none}#tbq{width:150px}}
+@media(max-width:860px){.wt{display:none}#tbq{width:150px}}
 .th.art{object-fit:contain;padding:10% 14% 24%}
+#np{overflow:hidden}
+#npm{position:absolute;inset:0;width:100%;height:100%;opacity:.5;pointer-events:none;z-index:0}
+#np>*:not(#npm){position:relative;z-index:1}
+.ib.on{color:#35e07a}.ib.on::after{content:"";position:absolute;bottom:3px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:currentColor}
 </style>
 </head>
 <body>
@@ -174,12 +182,12 @@ body.tb #q{width:0;padding-left:0;padding-right:0;border-width:0;opacity:0;point
 <nav id="tb" aria-label="Taskbar">
   <button id="tbw" aria-label="Weather"><span id="wxi"></span><span class="wt"><b id="wxt">Weather</b><small id="wxd">Click to set up</small></span></button>
   <div id="tbm"><label id="tbq"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="tbs2" type="search" placeholder="Search apps" autocomplete="off" aria-label="Search apps"></label><div id="tbi"></div></div>
-  <div id="tbr"><label class="vol"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16.5 9a4.5 4.5 0 010 6"/></svg><input type="range" id="tbv" min="0" max="1" step=".01" aria-label="Volume"></label><div id="tbc"><b id="tbt"></b><small id="tbd"></small></div></div>
+  <div id="tbr"><div class="vol"><button id="vbtn" class="ib" aria-label="Volume"><span id="vi"></span></button><div id="volp"><div class="vb"><input type="range" id="tbv" min="0" max="1" step=".01" aria-label="Volume"></div></div></div><div id="tbc"><b id="tbt"></b><small id="tbd"></small></div></div>
 </nav>
 <div id="sr" aria-label="App search results"></div>
 <div id="cm" role="menu"></div>
 <div id="nq" hidden><span>Up next</span><b id="nqt"></b></div>
-<div id="np" hidden><div id="npa"></div><div class="nt"><b id="npt"></b><small id="nps"></small></div><button id="npv" class="ib" aria-label="Previous"></button><button id="npp" class="ib pp" aria-label="Play"></button><button id="npn" class="ib" aria-label="Next"></button></div>
+<div id="np" hidden><canvas id="npm" aria-hidden="true"></canvas><div id="npa"></div><div class="nt"><b id="npt"></b><small id="nps"></small></div><button id="npv" class="ib" aria-label="Previous"></button><button id="npp" class="ib pp" aria-label="Play"></button><button id="npn" class="ib" aria-label="Next"></button><button id="npr" class="ib" aria-label="Repeat song" aria-pressed="false"></button></div>
 <div id="toast" role="status"></div>
 <audio id="aud"></audio>
 <input type="file" id="pick" multiple hidden>
@@ -330,24 +338,50 @@ const setR=v=>{v=Math.min(5000,Math.max(500,+v||1500));Rt=v;$('#rr').value=$('#r
 /* ---------- music ---------- */
 const au=$('#aud');let ti=-1;const urls={};
 const isAud=f=>/\.(mp3|aac|m4a|ogg|oga|opus|wav|flac)$/i.test(f.name)||f.type.startsWith('audio/');
-function playT(i){if(!tracks.length)return;ti=(i+tracks.length)%tracks.length;const t=tracks[ti];au.src=urls[t.id]||=URL.createObjectURL(t.blob);au.play().catch(()=>toast('Press play to start the music.'));drawM()}
-function toggleM(){if(ti<0||!au.getAttribute('src'))return playT(0);au.paused?au.play():au.pause()}
+function playT(i){if(!tracks.length)return;meterInit();ti=(i+tracks.length)%tracks.length;const t=tracks[ti];au.src=urls[t.id]||=URL.createObjectURL(t.blob);au.play().catch(()=>toast('Press play to start the music.'));drawM()}
+function toggleM(){meterInit();if(ti<0||!au.getAttribute('src'))return playT(0);au.paused?au.play():au.pause()}
 const sv=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
-const IC={prev:sv('M6 5h2v14H6zM20 5v14L9.5 12z'),next:sv('M16 5h2v14h-2zM4 5v14l10.5-7z'),play:sv('M7 4.5v15l13-7.5z'),pause:sv('M6 4h4v16H6zM14 4h4v16h-4z')};
-for(const[i,k]of[['#pv','prev'],['#nx','next'],['#npv','prev'],['#npn','next']])$(i).innerHTML=IC[k];
+const IC={prev:sv('M6 5h2v14H6zM20 5v14L9.5 12z'),next:sv('M16 5h2v14h-2zM4 5v14l10.5-7z'),play:sv('M7 4.5v15l13-7.5z'),pause:sv('M6 4h4v16H6zM14 4h4v16h-4z'),repeat:sv('M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z')};
+for(const[i,k]of[['#pv','prev'],['#nx','next'],['#npv','prev'],['#npn','next'],['#npr','repeat']])$(i).innerHTML=IC[k];
+/* LED ladder peak meter drawn behind the now-playing card (Web Audio, stereo) */
+let AC,an=[],lv=[0,0],pk=[0,0],pt=[0,0],mr=0,mt=0;const mb=[new Uint8Array(256),new Uint8Array(256)];
+function meterInit(){
+  if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();const src=AC.createMediaElementSource(au),up=AC.createGain(),sp=AC.createChannelSplitter(2);
+    up.channelCount=2;up.channelCountMode='explicit';src.connect(up);up.connect(AC.destination);up.connect(sp);
+    an=[0,1].map(i=>{const a=AC.createAnalyser();a.fftSize=256;sp.connect(a,i);return a})}catch{}}
+  if(AC&&AC.state=='suspended')AC.resume()}
+function drawMeter(){
+  const c=$('#npm'),w=$('#np').offsetWidth,h=$('#np').offsetHeight,d=devicePixelRatio||1;if(!w)return;
+  if(c.width!=Math.round(w*d)||c.height!=Math.round(h*d)){c.width=Math.round(w*d);c.height=Math.round(h*d)}
+  const x=c.getContext('2d'),N=Math.max(12,Math.floor(w/10)),gw=w/N,rh=(h-14)/2,col=f=>f<.68?'#35e07a':f<.86?'#ffd23f':'#ff4d4d';
+  x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);
+  for(let r=0;r<2;r++){const y=4+r*(rh+6);
+    for(let i=0;i<N;i++){const f=i/N,lit=f<lv[r];x.globalAlpha=lit?.95:.09;x.fillStyle=lit?col(f):'#fff';x.fillRect(i*gw+1,y,gw-2,rh)}
+    if(pk[r]>.03){x.globalAlpha=1;x.fillStyle=col(pk[r]);x.fillRect(Math.min(N-1,Math.floor(pk[r]*N))*gw+1,y,gw-2,rh)}}}
+function mloop(now){
+  mr=requestAnimationFrame(mloop);
+  const dt=Math.min(.05,(now-mt)/1000||.016),playing=!au.paused&&AC&&AC.state=='running';mt=now;
+  for(let c=0;c<2;c++){let v=0;
+    if(playing&&an[c]){an[c].getByteTimeDomainData(mb[c]);let m=0;for(let i=0;i<256;i++){const a=Math.abs(mb[c][i]-128);if(a>m)m=a}m/=128;if(m>0)v=Math.max(0,Math.min(1,(20*Math.log10(m)+48)/48))}
+    lv[c]=v>lv[c]?v:Math.max(v,lv[c]-dt*1.4);
+    if(lv[c]>=pk[c]){pk[c]=lv[c];pt[c]=now}else if(now-pt[c]>700)pk[c]=Math.max(lv[c],pk[c]-dt*.9)}
+  if(!pl.classList.contains('on'))drawMeter();
+  if(!playing&&lv[0]<.005&&lv[1]<.005&&pk[0]<.005&&pk[1]<.005){lv=[0,0];pk=[0,0];drawMeter();cancelAnimationFrame(mr);mr=0}}
+const mrun=()=>{if(!mr){mt=performance.now();mr=requestAnimationFrame(mloop)}};
 function drawM(){
   const p=!au.paused&&!!au.getAttribute('src'),t=tracks[ti];
   for(const i of['#pp','#npp']){$(i).innerHTML=p?IC.pause:IC.play;$(i).setAttribute('aria-label',p?'Pause':'Play')}
   $('#np').hidden=!tracks.length;const nx=tracks.length?tracks[(ti+1)%tracks.length]:null;$('#nq').hidden=!nx;if(nx)$('#nqt').textContent=nx.name;$('#npt').textContent=t?t.name:'Nothing playing yet';$('#nps').textContent=p?'Now playing':t?'Paused':'Press play';$('#npa').style.setProperty('--h',hue(t?t.name:'music'));
-  $('#mp').style.color=$('#bm').style.color=p?'var(--ac)':'';
+  $('#mp').style.color=$('#bm').style.color=p?'var(--ac)':'';drawMeter();
   $('#tl').replaceChildren(...tracks.map((t,i)=>{const li=document.createElement('li');li.className=i==ti?'on':'';li.innerHTML='<span></span><button aria-label="Remove track">×</button>';li.firstChild.textContent=t.name;
     on(li,'click',e=>{if(e.target.tagName!='BUTTON')return playT(i);
       if(i==ti){au.pause();au.removeAttribute('src');ti=-1}else if(i<ti)ti--;
       tracks.splice(i,1);del('music',t.id);URL.revokeObjectURL(urls[t.id]);delete urls[t.id];drawM()});
     return li}))}
-on(au,'ended',()=>playT(ti+1));on(au,'play',drawM);on(au,'pause',drawM);
+on(au,'ended',()=>playT(ti+1));on(au,'play',()=>{drawM();mrun()});on(au,'pause',drawM);
 on($('#mp'),'click',toggleM);on($('#bm'),'click',toggleM);on($('#pp'),'click',toggleM);on($('#pv'),'click',()=>playT(ti-1));on($('#nx'),'click',()=>playT(ti+1));
-const setVol=v=>{au.volume=+v;$('#vo').value=$('#tbv').value=v;LS.set('vol',v)};on($('#vo'),'input',e=>setVol(e.target.value));on($('#tbv'),'input',e=>setVol(e.target.value));
+const volIcon=v=>{$('#vi').innerHTML=`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/>${v==0?'<path d="M16 9l5 6M21 9l-5 6"/>':v<.5?'<path d="M16.5 9.5a3.5 3.5 0 010 5"/>':'<path d="M16.5 9.5a3.5 3.5 0 010 5M19 7a7 7 0 010 10"/>'}</svg>`};
+const setVol=v=>{au.volume=+v;$('#vo').value=$('#tbv').value=v;LS.set('vol',v);volIcon(+v)};on($('#vo'),'input',e=>setVol(e.target.value));on($('#tbv'),'input',e=>setVol(e.target.value));
 
 /* ---------- player ---------- */
 const pl=$('#pl'),fr=$('#fr');let gu,ru,cur,gt;
@@ -507,7 +541,10 @@ on(window,'contextmenu',e=>{const el=e.target.closest('[data-gid]'),g=el&&byId(e
 on(document,'pointerdown',e=>{if(!e.target.closest('#cm'))cm.classList.remove('on')});
 on(document,'keydown',e=>{if(e.key=='Escape')cm.classList.remove('on')});
 on(window,'scroll',()=>cm.classList.remove('on'));
+on($('#vbtn'),'click',()=>$('#volp').classList.toggle('on'));on(document,'pointerdown',e=>{if(!e.target.closest('.vol'))$('#volp').classList.remove('on')});
 on($('#npv'),'click',()=>playT(ti-1));on($('#npp'),'click',toggleM);on($('#npn'),'click',()=>playT(ti+1));
+const setLoop=v=>{au.loop=v;LS.set('loop1',+v);$('#npr').classList.toggle('on',v);$('#npr').setAttribute('aria-pressed',v)};
+on($('#npr'),'click',()=>setLoop(!au.loop));setLoop(LS.get('loop1')==='1');
 on($('#st'),'click',()=>panel.classList.toggle('open'));on($('#x'),'click',()=>panel.classList.remove('open'));
 on(document,'pointerdown',e=>{if(!e.target.closest('#panel,#st'))panel.classList.remove('open')});
 on(document,'keydown',e=>{if(e.key=='Escape')panel.classList.remove('open')});
@@ -524,7 +561,7 @@ on(window,'pointermove',e=>{mx=e.clientX/innerWidth;my=1-e.clientY/innerHeight})
 let rt;on(window,'resize',()=>{clearTimeout(rt);rt=setTimeout(resize,80)});
 
 (async()=>{
-  $('#ql').value=LS.get('q')||.75;au.volume=+(LS.get('vol')??.6);$('#vo').value=$('#tbv').value=au.volume;
+  $('#ql').value=LS.get('q')||.75;au.volume=+(LS.get('vol')??.6);$('#vo').value=$('#tbv').value=au.volume;volIcon(au.volume);
   $('#cv').checked=LS.get('cb')!=='0';$('#cc').checked=LS.get('cc')!=='0';setR(LS.get('R')||1500);Rc=Rt;$('#lp').checked=Lp.on;$('#ln').value=Lp.len;
   resize();
   try{const s=JSON.parse(LS.get('shader')||'null');setShader(s?s.src:DEF,s?s.name:'Default')}catch{}
