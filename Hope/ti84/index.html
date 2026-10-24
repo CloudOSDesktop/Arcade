@@ -100,7 +100,7 @@ textarea{width:100%;height:220px;margin:12px 0;padding:12px;border-radius:12px;b
 
 <script type="module">
 const $=s=>document.querySelector(s),on=(e,t,f)=>e.addEventListener(t,f);
-const cfg={backend:'./emu/emu_core.js',rom:'./rom/TI-84-CE.rom',cyclesPerSecond:48e6};
+const cfg={backend:'./emu/emu_core.js',rom:'./rom/TI-84-CE.rom',cyclesPerSecond:48e6,programs:[]};
 const ROM_ERR={'-1':'Not valid ROM data','-2':'ROM file is too small','-3':'ROM file is too large'};
 const FILE_ERR={'-10':'ROM not loaded','-11':'could not parse the file','-12':'no flash space left','-13':'emulator already booted'};
 
@@ -125,7 +125,7 @@ const dbAll=async()=>(await tx('readonly',o=>o.getAll()))||[],dbPut=v=>tx('readw
 const LS={get:k=>{try{return localStorage.getItem(k)}catch{}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
 
 /* ---------- state ---------- */
-let KM=structuredClone(KM0),Wasm=null,emu=null,rom=null,progs=[],paused=false,speed=1,last=0,raf=0;
+let KM=structuredClone(KM0),Wasm=null,emu=null,rom=null,progs=[],bundled=[],paused=false,speed=1,last=0,raf=0;
 const cv=$('#cv'),ctx=cv.getContext('2d'),held=new Set(),btn={};
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t.h);t.h=setTimeout(()=>t.classList.remove('on'),4200)}
 function stat(id,cls,txt){const l=$('#s-'+id);l.className=cls;l.lastElementChild.textContent=txt}
@@ -147,7 +147,7 @@ function boot(){
   if(!rom)return say('Drop your TI-84 CE ROM here to start.');
   emu=new Wasm();const r=emu.load_rom(new Uint8Array(rom.bytes));
   if(r!==0){emu=null;stat('rom','bad',rom.name+': '+(ROM_ERR[r]||'load_rom returned '+r));return say('That ROM was rejected by the emulator.')}
-  for(const p of progs){const c=emu.send_file(new Uint8Array(p.bytes));if(c<0)toast(p.name+': '+(FILE_ERR[c]||'error '+c))}
+  for(const p of [...bundled,...progs]){const c=emu.send_file(new Uint8Array(p.bytes));if(c<0)toast(p.name+': '+(FILE_ERR[c]||'error '+c))}
   emu.power_on();paused=false;$('#pz').textContent='Pause';last=0;say('');raf=requestAnimationFrame(frame)}
 function frame(t){
   raf=requestAnimationFrame(frame);
@@ -175,8 +175,8 @@ async function loadPath(p,quiet){
 
 /* ---------- programs ---------- */
 function drawProgs(){
-  stat('pr',progs.length?'ok':'','…');
-  $('#s-pr span').textContent=progs.length?progs.length+' stored, injected on every start':'None added';
+  stat('pr',progs.length||bundled.length?'ok':'','…');
+  $('#s-pr span').textContent=(bundled.length?bundled.length+' built in, ':'')+(progs.length?progs.length+' added by you':'none added by you')+'. All are installed on every start.';
   $('#pl').replaceChildren(...progs.map(p=>{const li=document.createElement('li');li.innerHTML='<span></span><button aria-label="Remove">×</button>';li.firstChild.textContent=p.name;
     on(li.lastChild,'click',async()=>{progs=progs.filter(x=>x!==p);await dbDel(p.k);drawProgs();toast('Removed. Restart the calculator to apply.')});return li}))}
 async function addProg(f){
@@ -232,10 +232,13 @@ on(window,'drop',e=>{if(!isF(e))return;e.preventDefault();dc=0;dz.classList.remo
 
 /* ---------- start ---------- */
 (async()=>{
-  try{const c=await (await fetch('config.json')).json();for(const k of['backend','rom','cyclesPerSecond'])if(c[k]!=null)cfg[k]=c[k]}catch{}
+  try{const c=await (await fetch('config.json')).json();for(const k of['backend','rom','cyclesPerSecond','programs'])if(c[k]!=null)cfg[k]=c[k]}catch{}
   $('#rp').value=cfg.rom;
   try{const s=LS.get('ti84.keymap');if(s)applyKM(s,false);else $('#km').value=fmt(KM)}catch{$('#km').value=fmt(KM)}
-  progs=(await dbAll()).filter(r=>r.k.startsWith('p:'));drawProgs();
+  progs=(await dbAll()).filter(r=>r.k.startsWith('p:'));
+  for(const u of Array.isArray(cfg.programs)?cfg.programs:[]){ // programs shipped with the site (same-site paths only)
+    try{if(!sameSite(u))continue;const r=await fetch(u);if(!r.ok||(r.headers.get('content-type')||'').includes('html'))throw 0;bundled.push({k:'b:'+u,name:u.split('/').pop(),bytes:await r.arrayBuffer()})}catch{toast('Built-in program not found: '+u)}}
+  drawProgs();
   await loadBackend();
   const r=(await dbAll()).find(x=>x.k=='rom');
   if(r)await setRom(r.bytes,r.name,false);
