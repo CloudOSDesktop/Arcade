@@ -2,5 +2,7 @@
   "backend": "./emu/emu_core.js",
   "rom": "./rom/TI-84-CE.rom",
   "cyclesPerSecond": 48000000,
-  "programs": []
+  "programs": [
+    "programs/arTIfiCE_v2_1.8xp"
+  ]
 }
