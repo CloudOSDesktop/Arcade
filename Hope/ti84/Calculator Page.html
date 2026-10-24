@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TI-84 Plus CE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--tx:#f3effc;--mut:#a9a2c0;--ac:#ffa45e;--ln:rgba(255,255,255,.14);--gl:rgba(14,11,26,.9);--ok:#6fe3a0;--bad:#ff7b7b}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html{background:#07060d}
+body{min-height:100vh;color:var(--tx);font:500 15px/1.45 "Bricolage Grotesque",system-ui,sans-serif;background:radial-gradient(80% 60% at 15% 0,#2b2060,transparent),radial-gradient(70% 60% at 100% 100%,#5a1f4c,transparent),#0a0818;padding:clamp(16px,3vw,40px)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--ln);background:rgba(255,255,255,.09);border-radius:999px;padding:8px 16px;transition:background .2s,scale .2s}
+button:hover{background:rgba(255,255,255,.18)}button:active{scale:.96}
+.pri{background:var(--ac);color:#1a0f08;border-color:transparent;font-weight:700}.pri:hover{background:#ffb87d}
+:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
+h1{font-size:28px;font-weight:800;letter-spacing:-.03em;margin-bottom:20px}h1 i{color:var(--ac);font-style:normal}
+.wrap{display:grid;grid-template-columns:minmax(320px,540px) minmax(300px,1fr);gap:clamp(20px,3vw,44px);align-items:start;max-width:1200px;margin:auto}
+@media(max-width:820px){.wrap{grid-template-columns:1fr}}
+.body{padding:22px 22px 26px;border-radius:34px 34px 44px 44px;background:linear-gradient(160deg,#2a2d3c,#14151f);border:1px solid var(--ln);box-shadow:0 40px 70px -30px #000}
+.scr{position:relative;border-radius:10px;overflow:hidden;background:#10131a;border:6px solid #07080d;aspect-ratio:4/3}
+#cv{width:100%;height:100%;display:block;image-rendering:pixelated}
+#msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:#cfd3e6;font-size:15px;background:rgba(16,19,26,.92)}
+#kp{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:20px}
+.k{padding:9px 0;border-radius:9px;font-size:13px;font-weight:700;background:#3b3f55;border:1px solid #0006;box-shadow:0 3px 0 #0008;user-select:none;touch-action:none}
+.k.n{background:#e4e4ee;color:#16171f}.k.s{background:#5aa6ff;color:#06182e}.k.a{background:#6fe3a0;color:#06240f}.k.e{background:#ffa45e;color:#2a1304}
+.k.dn{translate:0 3px;box-shadow:none;filter:brightness(1.3)}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;align-items:center}
+select{background:rgba(0,0,0,.4);border:1px solid var(--ln);border-radius:999px;padding:8px 12px}
+.card{padding:20px;border-radius:22px;background:rgba(10,8,22,.7);border:1px solid var(--ln);margin-bottom:18px}
+.card h2{font-size:17px;margin-bottom:12px}
+.st{list-style:none;padding:0;display:grid;gap:8px}
+.st li{display:flex;gap:10px;align-items:baseline}.st b{min-width:84px}.st span{color:var(--mut);overflow-wrap:anywhere}
+.st li::before{content:"";width:10px;height:10px;border-radius:50%;background:#777;flex:none;translate:0 1px}
+.st .ok::before{background:var(--ok)}.st .bad::before{background:var(--bad)}
+.dz{display:grid;gap:10px;justify-items:center;text-align:center;padding:26px 18px;border:2px dashed var(--ln);border-radius:22px;margin-bottom:18px;transition:border-color .2s,background .2s}
+.dz.on{border-color:var(--ac);background:rgba(255,164,94,.1)}
+.hint{color:var(--mut);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1;min-width:150px}
+input[type=text]{padding:8px 14px;border-radius:12px;border:1px solid var(--ln);background:rgba(0,0,0,.4);outline:0}
+input[type=text]:focus,textarea:focus{border-color:var(--ac)}
+#pl{list-style:none;padding:0;display:grid;gap:4px;margin-top:10px}
+#pl li{display:flex;gap:8px;align-items:center;padding:4px 4px 4px 12px;border-radius:12px;background:rgba(255,255,255,.06)}#pl span{flex:1;overflow-wrap:anywhere}
+#pl button{padding:2px 10px}
+details summary{cursor:pointer;font-weight:700}
+textarea{width:100%;height:220px;margin:12px 0;padding:12px;border-radius:12px;border:1px solid var(--ln);background:rgba(0,0,0,.45);font:12px/1.5 ui-monospace,Consolas,monospace;outline:0;resize:vertical}
+#toast{position:fixed;left:50%;bottom:24px;z-index:9;translate:-50% 30px;opacity:0;padding:12px 20px;border-radius:99px;background:var(--gl);border:1px solid var(--ln);transition:.35s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.on{opacity:1;translate:-50% 0}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<h1>TI-84 Plus CE<i>.</i></h1>
+<div class="wrap">
+  <section>
+    <div class="body">
+      <div class="scr"><canvas id="cv" width="320" height="240"></canvas><div id="msg">Starting…</div></div>
+      <div id="kp"></div>
+    </div>
+    <div class="ctl">
+      <button id="rs">Restart</button><button id="pz">Pause</button>
+      <select id="sp" aria-label="Speed"><option value="1">1× speed</option><option value="2">2× speed</option><option value="4">4× speed</option></select>
+      <span class="hint" id="lk">Last key: none</span>
+    </div>
+  </section>
+  <aside>
+    <div class="card">
+      <h2>Status</h2>
+      <ul class="st">
+        <li id="s-be"><b>Emulator</b><span>Checking…</span></li>
+        <li id="s-rom"><b>ROM</b><span>Checking…</span></li>
+        <li id="s-pr"><b>Programs</b><span>None added</span></li>
+      </ul>
+    </div>
+    <div class="dz" id="dz">
+      <strong>Drop your files here</strong>
+      <span class="hint">A TI-84 CE ROM, programs (.8xp or .8xv), or a key mapping (.json). Everything stays in this browser and is never uploaded.</span>
+      <button class="pri" id="pk">Choose files</button>
+    </div>
+    <div class="card">
+      <h2>ROM path</h2>
+      <div class="row"><input type="text" id="rp" aria-label="ROM path" spellcheck="false"><button id="rl">Load path</button><button id="rx">Forget stored ROM</button></div>
+      <p class="hint" style="margin-top:10px">Same-site paths only. Dropping the ROM is safer: a ROM file placed in a public deployment is published to everyone.</p>
+      <ul id="pl"></ul>
+    </div>
+    <div class="card">
+      <details>
+        <summary>Key mapping</summary>
+        <p class="hint" style="margin-top:8px">"matrix" gives each calculator key a [row, col] (0 to 7). "keyboard" maps your keyboard keys to those names. Space pauses.</p>
+        <textarea id="km" spellcheck="false" aria-label="Key mapping JSON"></textarea>
+        <div class="row"><button class="pri" id="ka">Apply</button><button id="kr">Reset to default</button><button id="kd">Download</button></div>
+      </details>
+    </div>
+  </aside>
+</div>
+<div id="toast" role="status"></div>
+<input type="file" id="pick" multiple hidden accept=".rom,.bin,.8xp,.8xv,.json">
+
+<script type="module">
+const $=s=>document.querySelector(s),on=(e,t,f)=>e.addEventListener(t,f);
+const cfg={backend:'./emu/emu_core.js',rom:'./rom/TI-84-CE.rom',cyclesPerSecond:48e6};
+const ROM_ERR={'-1':'Not valid ROM data','-2':'ROM file is too small','-3':'ROM file is too large'};
+const FILE_ERR={'-10':'ROM not loaded','-11':'could not parse the file','-12':'no flash space left','-13':'emulator already booted'};
+
+/* ---------- default key mapping (CE toolchain keypad layout: row = key group, col = bit) ---------- */
+const KM0={matrix:{yequ:[1,4],window:[1,3],zoom:[1,2],trace:[1,1],graph:[1,0],second:[1,5],mode:[1,6],del:[1,7],alpha:[2,7],xton:[3,7],stat:[4,7],math:[2,6],apps:[3,6],prgm:[4,6],vars:[5,6],clear:[6,6],recip:[2,5],sin:[3,5],cos:[4,5],tan:[5,5],power:[6,5],square:[2,4],comma:[3,4],lparen:[4,4],rparen:[5,4],div:[6,4],log:[2,3],7:[3,3],8:[4,3],9:[5,3],mul:[6,3],ln:[2,2],4:[3,2],5:[4,2],6:[5,2],sub:[6,2],sto:[2,1],1:[3,1],2:[4,1],3:[5,1],add:[6,1],on:[0,0],0:[3,0],dec:[4,0],chs:[5,0],enter:[6,0],down:[7,0],left:[7,1],right:[7,2],up:[7,3]},
+keyboard:{'0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','+':'add','-':'sub','*':'mul','/':'div','(':'lparen',')':'rparen','^':'power','.':'dec',',':'comma','_':'chs',n:'chs',Enter:'enter',Backspace:'del',Delete:'del',ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',Escape:'clear',Shift:'second',Alt:'alpha',o:'on',s:'sin',c:'cos',t:'tan',l:'ln',g:'log',m:'math',r:'recip',x:'xton',q:'square',Insert:'sto',F1:'yequ',F2:'window',F3:'zoom',F4:'trace',F5:'graph',Home:'apps',p:'prgm',PageDown:'prgm',PageUp:'vars',End:'stat'}};
+const LAYOUT=[['yequ','Y='],['window','Window'],['zoom','Zoom'],['trace','Trace'],['graph','Graph'],
+['second','2nd','s'],['mode','Mode'],['del','Del'],['left','◀'],['up','▲'],
+['alpha','Alpha','a'],['xton','X,T,θ,n'],['stat','Stat'],['down','▼'],['right','▶'],
+['math','Math'],['apps','Apps'],['prgm','Prgm'],['vars','Vars'],['clear','Clear'],
+['recip','x⁻¹'],['sin','sin'],['cos','cos'],['tan','tan'],['power','^'],
+['square','x²'],['comma',','],['lparen','('],['rparen',')'],['div','÷'],
+['log','log'],['7','7','n'],['8','8','n'],['9','9','n'],['mul','×'],
+['ln','ln'],['4','4','n'],['5','5','n'],['6','6','n'],['sub','−'],
+['sto','sto→'],['1','1','n'],['2','2','n'],['3','3','n'],['add','+'],
+['on','On'],['0','0','n'],['dec','.','n'],['chs','(−)','n'],['enter','Enter','e']];
+
+/* ---------- storage (IndexedDB, local to this browser) ---------- */
+const dbp=new Promise((ok,no)=>{try{const r=indexedDB.open('arcade-ti84',1);r.onupgradeneeded=()=>r.result.createObjectStore('f',{keyPath:'k'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}});
+const tx=(m,f)=>dbp.then(d=>new Promise((ok,no)=>{const t=d.transaction('f',m),q=f(t.objectStore('f'));t.oncomplete=()=>ok(q.result);t.onerror=()=>no(t.error)})).catch(()=>undefined);
+const dbAll=async()=>(await tx('readonly',o=>o.getAll()))||[],dbPut=v=>tx('readwrite',o=>o.put(v)),dbDel=k=>tx('readwrite',o=>o.delete(k));
+const LS={get:k=>{try{return localStorage.getItem(k)}catch{}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
+
+/* ---------- state ---------- */
+let KM=structuredClone(KM0),Wasm=null,emu=null,rom=null,progs=[],paused=false,speed=1,last=0,raf=0;
+const cv=$('#cv'),ctx=cv.getContext('2d'),held=new Set(),btn={};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t.h);t.h=setTimeout(()=>t.classList.remove('on'),4200)}
+function stat(id,cls,txt){const l=$('#s-'+id);l.className=cls;l.lastElementChild.textContent=txt}
+const say=t=>{$('#msg').hidden=!t;$('#msg').textContent=t||''};
+const sha=async b=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',b))].map(x=>x.toString(16).padStart(2,'0')).join('');
+const sameSite=p=>{try{return new URL(p,location.href).origin===location.origin}catch{return false}};
+
+/* ---------- emulator ---------- */
+async function loadBackend(){
+  try{
+    if(!sameSite(cfg.backend))throw Error('backend must be hosted on this site');
+    const m=await import(new URL(cfg.backend,location.href).href);await m.default();Wasm=m.WasmEmu;
+    stat('be','ok','Ready ('+cfg.backend+')')
+  }catch(e){stat('be','bad','Not found at '+cfg.backend+'. Copy emu_core.js and emu_core_bg.wasm into ti84/emu/ (see README.md).')}}
+function stop(){cancelAnimationFrame(raf);raf=0}
+function boot(){
+  stop();try{emu&&emu.free()}catch{}emu=null;
+  if(!Wasm)return say('The emulator build is missing. See the status panel and README.md.');
+  if(!rom)return say('Drop your TI-84 CE ROM here to start.');
+  emu=new Wasm();const r=emu.load_rom(new Uint8Array(rom.bytes));
+  if(r!==0){emu=null;stat('rom','bad',rom.name+': '+(ROM_ERR[r]||'load_rom returned '+r));return say('That ROM was rejected by the emulator.')}
+  for(const p of progs){const c=emu.send_file(new Uint8Array(p.bytes));if(c<0)toast(p.name+': '+(FILE_ERR[c]||'error '+c))}
+  emu.power_on();paused=false;$('#pz').textContent='Pause';last=0;say('');raf=requestAnimationFrame(frame)}
+function frame(t){
+  raf=requestAnimationFrame(frame);
+  if(paused||!emu)return;
+  const dt=last?Math.min(t-last,50):16.7;last=t;
+  emu.run_cycles(Math.round(cfg.cyclesPerSecond*dt/1000*speed));
+  if(emu.is_lcd_on()){
+    const w=emu.framebuffer_width(),h=emu.framebuffer_height();if(cv.width!=w||cv.height!=h){cv.width=w;cv.height=h}
+    ctx.putImageData(new ImageData(new Uint8ClampedArray(emu.get_framebuffer_rgba()),w,h),0,0);
+    cv.style.filter='brightness('+Math.max(.35,emu.get_backlight()/255)+')'
+  }else{ctx.fillStyle='#10131a';ctx.fillRect(0,0,cv.width,cv.height)}}
+
+/* ---------- ROM ---------- */
+async function setRom(buf,name,save){
+  const n=buf.byteLength;
+  if(n<1<<20||n>8<<20)return toast(name+' is '+(n/1048576).toFixed(2)+' MB. A TI-84 CE ROM dump is 4 MB.');
+  const h=await sha(buf);rom={name,bytes:buf,sha:h};
+  if(save)await dbPut({k:'rom',name,bytes:buf,sha:h});
+  stat('rom','ok',name+' ('+(n/1048576).toFixed(2)+' MB, SHA-256 '+h.slice(0,12)+'…)'+(n==4194304?'':' (unusual size, expected 4 MB)'));
+  boot()}
+async function loadPath(p,quiet){
+  if(!sameSite(p))return toast('Only paths on this site are allowed.');
+  try{const r=await fetch(p);if(!r.ok||(r.headers.get('content-type')||'').includes('html'))throw 0;await setRom(await r.arrayBuffer(),p.split('/').pop(),false)}
+  catch{if(!quiet)toast('No ROM found at '+p+'. Drop your ROM file instead.')}}
+
+/* ---------- programs ---------- */
+function drawProgs(){
+  stat('pr',progs.length?'ok':'','…');
+  $('#s-pr span').textContent=progs.length?progs.length+' stored, injected on every start':'None added';
+  $('#pl').replaceChildren(...progs.map(p=>{const li=document.createElement('li');li.innerHTML='<span></span><button aria-label="Remove">×</button>';li.firstChild.textContent=p.name;
+    on(li.lastChild,'click',async()=>{progs=progs.filter(x=>x!==p);await dbDel(p.k);drawProgs();toast('Removed. Restart the calculator to apply.')});return li}))}
+async function addProg(f){
+  const bytes=await f.arrayBuffer();if(bytes.byteLength>4<<20)return toast(f.name+' is too large for a calculator program.');
+  const p={k:'p:'+f.name,name:f.name,bytes};progs=progs.filter(x=>x.k!==p.k).concat(p);await dbPut(p);drawProgs();
+  if(emu){const c=emu.send_file_live(new Uint8Array(bytes));toast(c>0?f.name+' added. The calculator soft-reset to find it.':f.name+': '+(FILE_ERR[c]||'could not inject'))}
+  else toast(f.name+' saved. It loads once a ROM is running.')}
+
+/* ---------- key mapping ---------- */
+const fmt=j=>'{\n "matrix": {\n'+Object.entries(j.matrix).map(([k,v])=>`  "${k}": [${v}]`).join(',\n')+'\n },\n "keyboard": {\n'+Object.entries(j.keyboard).map(([k,v])=>'  '+JSON.stringify(k)+': '+JSON.stringify(v)).join(',\n')+'\n }\n}';
+function applyKM(t,persist){
+  try{const j=JSON.parse(t);if(!j||typeof j.matrix!='object'||typeof j.keyboard!='object')throw Error('needs "matrix" and "keyboard" objects');
+    for(const[k,v]of Object.entries(j.matrix))if(!Array.isArray(v)||v.length!=2||!v.every(n=>Number.isInteger(n)&&n>=0&&n<8))throw Error('matrix "'+k+'" must be [row, col], each 0 to 7');
+    for(const[k,v]of Object.entries(j.keyboard))if(!(v in j.matrix))throw Error('keyboard "'+k+'" points to unknown key "'+v+'"');
+    KM={matrix:j.matrix,keyboard:j.keyboard};$('#km').value=fmt(KM);if(persist)LS.set('ti84.keymap',JSON.stringify(KM));toast('Key mapping applied.')
+  }catch(e){toast('Mapping not applied: '+e.message)}}
+function key(id,down){
+  const m=KM.matrix[id];if(!m||!emu||down===held.has(id))return;
+  down?held.add(id):held.delete(id);emu.set_key(m[0],m[1],down);
+  if(btn[id])btn[id].classList.toggle('dn',down);
+  if(down)$('#lk').textContent='Last key: '+id+' → row '+m[0]+', col '+m[1]}
+const kid=e=>KM.keyboard[e.key.length==1?e.key.toLowerCase():e.key];
+const typing=e=>e.target.closest&&e.target.closest('textarea,input,select');
+on(window,'keydown',e=>{if(typing(e)||e.ctrlKey||e.metaKey)return;
+  if(e.key==' '){e.preventDefault();return e.repeat||togglePause()}
+  const id=kid(e);if(id){e.preventDefault();key(id,true)}});
+on(window,'keyup',e=>{if(typing(e))return;const id=kid(e);if(id){e.preventDefault();key(id,false)}});
+on(window,'blur',()=>[...held].forEach(id=>key(id,false)));
+
+/* ---------- UI wiring ---------- */
+for(const[id,lb,c]of LAYOUT){const b=document.createElement('button');b.className='k '+(c||'');b.textContent=lb;b.setAttribute('aria-label',lb);btn[id]=b;
+  on(b,'pointerdown',e=>{b.setPointerCapture(e.pointerId);key(id,true)});on(b,'pointerup',()=>key(id,false));on(b,'pointercancel',()=>key(id,false));$('#kp').append(b)}
+function togglePause(){paused=!paused;$('#pz').textContent=paused?'Resume':'Pause'}
+on($('#pz'),'click',togglePause);on($('#rs'),'click',boot);on($('#sp'),'change',e=>{speed=+e.target.value});
+on($('#rl'),'click',()=>loadPath($('#rp').value.trim()));
+on($('#rx'),'click',async()=>{await dbDel('rom');rom=null;stat('rom','bad','No ROM stored');boot();toast('Stored ROM removed from this browser.')});
+on($('#ka'),'click',()=>applyKM($('#km').value,true));
+on($('#kr'),'click',()=>{LS.set('ti84.keymap','');applyKM(JSON.stringify(KM0),false)});
+on($('#kd'),'click',()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([fmt(KM)],{type:'application/json'}));a.download='ti84-keymap.json';a.click();URL.revokeObjectURL(a.href)});
+async function take(files){
+  for(const f of files){const n=f.name.toLowerCase();
+    if(n.endsWith('.json'))applyKM(await f.text(),true);
+    else if(/\.8x[pv]$/.test(n))await addProg(f);
+    else if(/\.(rom|bin)$/.test(n)||f.size>=1<<20)await setRom(await f.arrayBuffer(),f.name,true);
+    else toast(f.name+': expected a ROM, a .8xp/.8xv program or a mapping .json.')}}
+const pick=$('#pick'),dz=$('#dz');let dc=0;
+on($('#pk'),'click',()=>pick.click());on(pick,'change',()=>{take([...pick.files]);pick.value=''});
+const isF=e=>e.dataTransfer&&[...e.dataTransfer.types].includes('Files');
+on(window,'dragenter',e=>{if(isF(e)){e.preventDefault();dc++;dz.classList.add('on')}});
+on(window,'dragover',e=>{if(isF(e))e.preventDefault()});
+on(window,'dragleave',e=>{if(isF(e)&&--dc<=0){dc=0;dz.classList.remove('on')}});
+on(window,'drop',e=>{if(!isF(e))return;e.preventDefault();dc=0;dz.classList.remove('on');take([...e.dataTransfer.files])});
+
+/* ---------- start ---------- */
+(async()=>{
+  try{const c=await (await fetch('config.json')).json();for(const k of['backend','rom','cyclesPerSecond'])if(c[k]!=null)cfg[k]=c[k]}catch{}
+  $('#rp').value=cfg.rom;
+  try{const s=LS.get('ti84.keymap');if(s)applyKM(s,false);else $('#km').value=fmt(KM)}catch{$('#km').value=fmt(KM)}
+  progs=(await dbAll()).filter(r=>r.k.startsWith('p:'));drawProgs();
+  await loadBackend();
+  const r=(await dbAll()).find(x=>x.k=='rom');
+  if(r)await setRom(r.bytes,r.name,false);
+  else{stat('rom','bad','No ROM yet');await loadPath(cfg.rom,true);if(!rom)say(Wasm?'Drop your TI-84 CE ROM here to start.':'The emulator build is missing. See the status panel and README.md.')}
+  window.focus()})();
+</script>
+</body>
+</html>

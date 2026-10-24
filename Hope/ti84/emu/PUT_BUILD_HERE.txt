@@ -1,0 +1,1 @@
+Copy emu_core.js and emu_core_bg.wasm from your wasm-pack build into this folder. See ../README.md
