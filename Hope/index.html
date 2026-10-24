@@ -93,7 +93,7 @@ body:not(.tb) #tbi .tt{opacity:0;translate:0 22px}
 #tbr{display:flex;align-items:center;gap:14px}
 .vol{position:relative;display:flex;align-items:center}
 #volp{position:absolute;right:-6px;bottom:100%;padding-bottom:14px;opacity:0;visibility:hidden;translate:0 8px;transition:opacity .2s,translate .3s cubic-bezier(.2,.8,.2,1),visibility 0s .3s}
-.vol:hover #volp,.vol:focus-within #volp,#volp.on{opacity:1;visibility:visible;translate:0;transition:opacity .2s,translate .3s cubic-bezier(.2,.8,.2,1),visibility 0s}
+#volp.on{opacity:1;visibility:visible;translate:0;transition:opacity .2s,translate .3s cubic-bezier(.2,.8,.2,1),visibility 0s}
 .vb{padding:12px 16px;border-radius:12px;background:rgba(28,26,40,.97);border:1px solid var(--ln);box-shadow:0 14px 30px -10px #000}
 .vb input{width:140px;display:block;accent-color:var(--ac)}
 #tbc{text-align:right;line-height:1.2;padding:6px 10px;border-radius:8px}#tbc b{display:block;font-size:13px}#tbc small{color:var(--mut);font-size:12px}
@@ -343,30 +343,29 @@ function toggleM(){meterInit();if(ti<0||!au.getAttribute('src'))return playT(0);
 const sv=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
 const IC={prev:sv('M6 5h2v14H6zM20 5v14L9.5 12z'),next:sv('M16 5h2v14h-2zM4 5v14l10.5-7z'),play:sv('M7 4.5v15l13-7.5z'),pause:sv('M6 4h4v16H6zM14 4h4v16h-4z'),repeat:sv('M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z')};
 for(const[i,k]of[['#pv','prev'],['#nx','next'],['#npv','prev'],['#npn','next'],['#npr','repeat']])$(i).innerHTML=IC[k];
-/* LED ladder peak meter drawn behind the now-playing card (Web Audio, stereo) */
-let AC,an=[],lv=[0,0],pk=[0,0],pt=[0,0],mr=0,mt=0;const mb=[new Uint8Array(256),new Uint8Array(256)];
+/* LED ladder meter drawn behind the now-playing card: many columns across the card, each rising with the loudness of its frequency band */
+let AC,an,lv=[],pk=[],pt=[],mr=0,mt=0;const mb=new Uint8Array(512);
 function meterInit(){
-  if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();const src=AC.createMediaElementSource(au),up=AC.createGain(),sp=AC.createChannelSplitter(2);
-    up.channelCount=2;up.channelCountMode='explicit';src.connect(up);up.connect(AC.destination);up.connect(sp);
-    an=[0,1].map(i=>{const a=AC.createAnalyser();a.fftSize=256;sp.connect(a,i);return a})}catch{}}
+  if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();const src=AC.createMediaElementSource(au);an=AC.createAnalyser();an.fftSize=1024;an.smoothingTimeConstant=.75;src.connect(AC.destination);src.connect(an)}catch{}}
   if(AC&&AC.state=='suspended')AC.resume()}
 function drawMeter(){
   const c=$('#npm'),w=$('#np').offsetWidth,h=$('#np').offsetHeight,d=devicePixelRatio||1;if(!w)return;
   if(c.width!=Math.round(w*d)||c.height!=Math.round(h*d)){c.width=Math.round(w*d);c.height=Math.round(h*d)}
-  const x=c.getContext('2d'),N=Math.max(12,Math.floor(w/10)),gw=w/N,rh=(h-14)/2,col=f=>f<.68?'#35e07a':f<.86?'#ffd23f':'#ff4d4d';
+  const N=Math.max(16,Math.floor(w/9));if(lv.length!=N){lv=Array(N).fill(0);pk=Array(N).fill(0);pt=Array(N).fill(0)}
+  const x=c.getContext('2d'),gw=w/N,S=Math.max(6,Math.floor(h/7)),sh=(h-6)/S,col=f=>f<.62?'#35e07a':f<.85?'#ffd23f':'#ff4d4d',yy=j=>h-3-(j+1)*sh+1;
   x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);
-  for(let r=0;r<2;r++){const y=4+r*(rh+6);
-    for(let i=0;i<N;i++){const f=i/N,lit=f<lv[r];x.globalAlpha=lit?.95:.09;x.fillStyle=lit?col(f):'#fff';x.fillRect(i*gw+1,y,gw-2,rh)}
-    if(pk[r]>.03){x.globalAlpha=1;x.fillStyle=col(pk[r]);x.fillRect(Math.min(N-1,Math.floor(pk[r]*N))*gw+1,y,gw-2,rh)}}}
+  for(let i=0;i<N;i++)for(let j=0;j<S;j++){const f=j/S,lit=f<lv[i];x.globalAlpha=lit?.95:.08;x.fillStyle=lit?col(f):'#fff';x.fillRect(i*gw+1,yy(j),gw-2,sh-2)}
+  for(let i=0;i<N;i++)if(pk[i]>.05){const j=Math.min(S-1,Math.floor(pk[i]*S));x.globalAlpha=1;x.fillStyle=col(pk[i]);x.fillRect(i*gw+1,yy(j),gw-2,sh-2)}}
 function mloop(now){
   mr=requestAnimationFrame(mloop);
-  const dt=Math.min(.05,(now-mt)/1000||.016),playing=!au.paused&&AC&&AC.state=='running';mt=now;
-  for(let c=0;c<2;c++){let v=0;
-    if(playing&&an[c]){an[c].getByteTimeDomainData(mb[c]);let m=0;for(let i=0;i<256;i++){const a=Math.abs(mb[c][i]-128);if(a>m)m=a}m/=128;if(m>0)v=Math.max(0,Math.min(1,(20*Math.log10(m)+48)/48))}
-    lv[c]=v>lv[c]?v:Math.max(v,lv[c]-dt*1.4);
-    if(lv[c]>=pk[c]){pk[c]=lv[c];pt[c]=now}else if(now-pt[c]>700)pk[c]=Math.max(lv[c],pk[c]-dt*.9)}
+  const dt=Math.min(.05,(now-mt)/1000||.016),playing=!au.paused&&AC&&AC.state=='running',N=lv.length;mt=now;
+  if(playing)an.getByteFrequencyData(mb);
+  for(let i=0;i<N;i++){let v=0;
+    if(playing){const a=Math.floor(Math.pow(i/N,2)*350)+1,b=Math.max(a+1,Math.floor(Math.pow((i+1)/N,2)*350)+1);let m=0;for(let k=a;k<b&&k<512;k++)if(mb[k]>m)m=mb[k];v=Math.min(1,Math.pow(m/255,1.4)*(.95+i/N*.8))}
+    lv[i]=v>lv[i]?v:Math.max(v,lv[i]-dt*1.6);
+    if(lv[i]>=pk[i]){pk[i]=lv[i];pt[i]=now}else if(now-pt[i]>600)pk[i]=Math.max(lv[i],pk[i]-dt)}
   if(!pl.classList.contains('on'))drawMeter();
-  if(!playing&&lv[0]<.005&&lv[1]<.005&&pk[0]<.005&&pk[1]<.005){lv=[0,0];pk=[0,0];drawMeter();cancelAnimationFrame(mr);mr=0}}
+  if(!playing&&lv.every(v=>v<.01)&&pk.every(v=>v<.01)){lv=lv.map(()=>0);pk=pk.map(()=>0);drawMeter();cancelAnimationFrame(mr);mr=0}}
 const mrun=()=>{if(!mr){mt=performance.now();mr=requestAnimationFrame(mloop)}};
 function drawM(){
   const p=!au.paused&&!!au.getAttribute('src'),t=tracks[ti];
@@ -541,7 +540,7 @@ on(window,'contextmenu',e=>{const el=e.target.closest('[data-gid]'),g=el&&byId(e
 on(document,'pointerdown',e=>{if(!e.target.closest('#cm'))cm.classList.remove('on')});
 on(document,'keydown',e=>{if(e.key=='Escape')cm.classList.remove('on')});
 on(window,'scroll',()=>cm.classList.remove('on'));
-on($('#vbtn'),'click',()=>$('#volp').classList.toggle('on'));on(document,'pointerdown',e=>{if(!e.target.closest('.vol'))$('#volp').classList.remove('on')});
+on($('#vbtn'),'click',()=>$('#volp').classList.toggle('on'));on(document,'keydown',e=>{if(e.key=='Escape')$('#volp').classList.remove('on')});on(document,'pointerdown',e=>{if(!e.target.closest('.vol'))$('#volp').classList.remove('on')});
 on($('#npv'),'click',()=>playT(ti-1));on($('#npp'),'click',toggleM);on($('#npn'),'click',()=>playT(ti+1));
 const setLoop=v=>{au.loop=v;LS.set('loop1',+v);$('#npr').classList.toggle('on',v);$('#npr').setAttribute('aria-pressed',v)};
 on($('#npr'),'click',()=>setLoop(!au.loop));setLoop(LS.get('loop1')==='1');
