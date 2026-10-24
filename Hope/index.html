@@ -59,13 +59,26 @@ input[type=range]{width:100%;accent-color:var(--ac)}
 #hot{position:absolute;top:0;left:0;right:0;height:8px;z-index:3}
 #bar{position:absolute;top:10px;left:50%;z-index:4;display:flex;gap:6px;padding:6px;border-radius:999px;background:var(--gl);border:1px solid var(--ln);translate:-50% -150%;transition:translate .35s cubic-bezier(.2,.8,.2,1)}
 #hot:hover+#bar,#bar:hover,#pl.show #bar{translate:-50% 0}
-#toast{position:fixed;left:50%;bottom:28px;z-index:60;translate:-50% 30px;opacity:0;padding:12px 20px;border-radius:99px;background:var(--gl);border:1px solid var(--ln);transition:.35s;pointer-events:none;max-width:90vw;text-align:center}
+#toast{position:fixed;left:50%;bottom:calc(28px + var(--tbh,0px));z-index:60;translate:-50% 30px;opacity:0;padding:12px 20px;border-radius:99px;background:var(--gl);border:1px solid var(--ln);transition:.35s;pointer-events:none;max-width:90vw;text-align:center}
 #toast.on{opacity:1;translate:-50% 0}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
 .th{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 input[type=number]{width:88px;padding:7px 10px;border-radius:12px;border:1px solid var(--ln);background:rgba(0,0,0,.4);outline:0}
 input[type=number]:focus{border-color:var(--ac)}
 .row input[type=range]{flex:1;min-width:130px;width:auto}
+#np{position:fixed;left:18px;bottom:calc(18px + var(--tbh,0px));z-index:15;display:flex;align-items:center;gap:6px;padding:8px 12px 8px 8px;border-radius:18px;background:var(--gl);border:1px solid var(--ln);max-width:min(380px,calc(100vw - 36px));transition:bottom .5s cubic-bezier(.2,.8,.2,1)}
+#npa{width:46px;height:46px;border-radius:10px;flex:none;margin-right:4px;display:grid;place-items:center;font-size:22px;background:radial-gradient(120% 90% at 20% 0,hsl(var(--h,260) 85% 60%),hsl(calc(var(--h,260) + 55) 70% 26%))}
+#npa::after{content:"♪";opacity:.85}
+.nt{min-width:0;display:grid;line-height:1.25;flex:1}.nt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}.nt small{color:var(--mut);font-size:12px}
+.ib{display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;background:none;border-radius:50%;color:var(--tx);flex:none}
+.ib:hover{background:rgba(255,255,255,.14)}.ib.pp{width:40px;height:40px;background:#fff;color:#111}.ib.pp:hover{background:#fff;scale:1.07}
+#tb{position:fixed;left:0;right:0;bottom:0;z-index:14;height:68px;display:flex;align-items:center;gap:12px;padding:0 clamp(14px,3vw,36px);background:linear-gradient(rgba(14,11,26,.94),rgba(8,6,18,.98));border-top:1px solid var(--ln);translate:0 105%;visibility:hidden;transition:translate .5s cubic-bezier(.2,.8,.2,1),visibility 0s .5s}
+body.tb #tb{translate:0;visibility:visible;transition:translate .5s cubic-bezier(.2,.8,.2,1),visibility 0s}
+#tbi{flex:1;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;justify-content:safe center;padding:8px 4px}
+.tt{width:44px;height:44px;flex:none;padding:0;overflow:hidden;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:18px;background:radial-gradient(120% 90% at 15% 0,hsl(var(--h) 85% 60%),hsl(calc(var(--h) + 55) 70% 26%))}
+.tt img{width:100%;height:100%;object-fit:cover}.tt:hover{scale:1.12}
+#tbc{color:var(--mut);font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.th.art{object-fit:contain;padding:10% 14% 24%}
 </style>
 </head>
 <body>
@@ -95,6 +108,10 @@ input[type=number]:focus{border-color:var(--ac)}
     <p class="hint">Works like a monitor's R rating: lower bends more, and 1000R to 1800R is typical. The background and the logos share this value, and each logo's hitbox follows its warp.</p>
   </div>
   <div class="s">
+    <label class="sw"><input type="checkbox" id="tbk"><i></i>Show taskbar</label>
+    <p class="hint">A bar along the bottom with shortcuts to your games, the clock, fullscreen and settings. It slides up and down.</p>
+  </div>
+  <div class="s">
     <h3>Background shader</h3>
     <div class="row"><button id="sh">Upload .fsh</button><button id="sr">Reset</button></div>
     <p class="hint" id="sn">Default</p>
@@ -106,7 +123,7 @@ input[type=number]:focus{border-color:var(--ac)}
   </div>
   <div class="s">
     <h3>Music</h3>
-    <div class="row"><button id="am">Add music</button><button id="pv">Prev</button><button id="pp">Play</button><button id="nx">Next</button></div>
+    <div class="row"><button id="am">Add music</button><button id="pv" class="ib" aria-label="Previous"></button><button id="pp" class="ib pp" aria-label="Play"></button><button id="nx" class="ib" aria-label="Next"></button></div>
     <ul id="tl"></ul>
     <input type="range" id="vo" min="0" max="1" step=".01" aria-label="Volume">
     <p class="hint">MP3, AAC and OGG files work.</p>
@@ -118,6 +135,8 @@ input[type=number]:focus{border-color:var(--ac)}
   <div id="bar"><button id="bk" class="pri">Back to library</button><button id="fs">Fullscreen</button><button id="sl">Set logo</button><button id="rl">Reload</button><button id="bm" aria-label="Play or pause music">♪</button></div>
   <iframe id="fr" title="Game" allow="autoplay; fullscreen; gamepad; clipboard-write" allowfullscreen></iframe>
 </div>
+<nav id="tb" aria-label="Taskbar"><button id="tbh">Library</button><div id="tbi"></div><span id="tbc"></span><button id="tbf">Fullscreen</button><button id="tbs">Settings</button></nav>
+<div id="np" hidden><div id="npa"></div><div class="nt"><b id="npt"></b><small id="nps"></small></div><button id="npv" class="ib" aria-label="Previous"></button><button id="npp" class="ib pp" aria-label="Play"></button><button id="npn" class="ib" aria-label="Next"></button></div>
 <div id="toast" role="status"></div>
 <audio id="aud"></audio>
 <input type="file" id="pick" multiple hidden>
@@ -137,6 +156,15 @@ navigator.storage?.persist?.();
 let games=[],tracks=[],cards=[],cx=[],cy=[],dirty=true,raf=0,P,T0=performance.now(),mx=.5,my=.5,first=true,nf=0,Rt=1500,Rc=1500;
 const Lp={on:LS.get('loop')!=='0',len:+LS.get('loopn')||60},B={v:0,f:0,t:0,s:0},C={v:0,f:0,t:0,s:0};
 const TI={id:'ti84',name:'TI-84 Plus CE',src:'ti84/',builtin:true};
+function tiArt(){
+  let k='';const key=(x,y,w,h,f)=>{k+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${f}"/>`};
+  for(let i=0;i<5;i++)key(62+i*36,184,30,14,'#4a5072');
+  for(let i=0;i<3;i++)key(62+i*36,206,30,14,i?'#4a5072':'#5aa6ff');
+  for(let i=0;i<3;i++)key(62+i*36,226,30,14,i?'#4a5072':'#6fe3a0');
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++)key(62+c*36,256+r*22,30,15,r==4&&c==4?'#ffa45e':c<3&&r>0?'#e4e4ee':'#4a5072');
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b3048"/><stop offset="1" stop-color="#0f1220"/></linearGradient></defs><rect x="40" y="10" width="220" height="380" rx="30" fill="url(#b)" stroke="#ffffff33"/><rect x="60" y="30" width="180" height="122" rx="9" fill="#06070b"/><rect x="67" y="37" width="166" height="108" rx="4" fill="#cfe6d8"/><rect x="74" y="46" width="78" height="6" fill="#26352d" opacity=".75"/><rect x="74" y="60" width="52" height="6" fill="#26352d" opacity=".75"/><rect x="74" y="74" width="96" height="6" fill="#26352d" opacity=".75"/><rect x="74" y="124" width="8" height="10" fill="#26352d"/><text x="150" y="172" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="#aab2d0" text-anchor="middle">TI-84 Plus CE</text><circle cx="206" cy="222" r="21" fill="#2b3048"/><circle cx="206" cy="222" r="8" fill="#4a5072"/>${k}</svg>`;
+  return 'data:image/svg+xml,'+encodeURIComponent(svg)}
+const TI_ART=tiArt();
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 function go(o,t){o.f=o.v;o.t=t;if(reduce){o.v=t;o.s=0;dirty=true}else o.s=performance.now()||1}
 function step(o,now){if(!o.s)return;const p=Math.min(1,(now-o.s)/900);o.v=o.f+(o.t-o.f)*(p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2);if(p==1)o.s=0;dirty=true}
@@ -154,7 +182,7 @@ function render(){
   cards=[TI,...games].filter(g=>g.name.toLowerCase().includes(q)).map(g=>{
     const c=document.createElement('article');c.className='card'+(f?' in':'');c.tabIndex=0;c.style.setProperty('--h',hue(g.name));
     c.innerHTML='<img class="th" alt="" hidden><b class="ini"></b><span class="pl"></span><h3></h3><div class="acts"><button data-a="r">Rename</button><button data-a="d">Remove</button></div>';
-    c.querySelector('.ini').textContent=(g.name[0]||'?').toUpperCase();if(g.thumb){const t=c.querySelector('.th');t.src=g.thumb;t.hidden=false;c.querySelector('.ini').hidden=true}c.querySelector('h3').textContent=g.name;if(g.builtin){c.querySelector('.acts').remove();c.querySelector('.ini').textContent='84'}
+    c.querySelector('.ini').textContent=(g.name[0]||'?').toUpperCase();if(g.thumb){const t=c.querySelector('.th');t.src=g.thumb;t.hidden=false;c.querySelector('.ini').hidden=true}c.querySelector('h3').textContent=g.name;if(g.builtin){c.querySelector('.acts').remove();const t=c.querySelector('.th');t.src=TI_ART;t.hidden=false;t.classList.add('art');c.querySelector('.ini').hidden=true}
     on(c,'click',e=>{const a=e.target.dataset.a;
       if(a=='r'){const n=prompt('Rename game',g.name);if(n&&n.trim()){g.name=n.trim();put('games',g);render()}}
       else if(a=='d'){if(confirm('Remove "'+g.name+'" from the library?')){games=games.filter(x=>x!==g);del('games',g.id);render()}}
@@ -162,10 +190,15 @@ function render(){
     on(c,'keydown',e=>{if(e.key=='Enter'&&e.target==c)openGame(g)});
     return c});
   grid.replaceChildren(...cards);
-  $('#empty').hidden=games.length>0;
+  $('#empty').hidden=games.length>0;renderTb();
   if(games.length)first=false;
   measure();
 }
+function renderTb(){
+  $('#tbi').replaceChildren(...[TI,...games].map(g=>{
+    const b=document.createElement('button');b.className='tt';b.title=g.name;b.setAttribute('aria-label','Open '+g.name);b.style.setProperty('--h',hue(g.name));
+    if(g.builtin||g.thumb){const i=document.createElement('img');i.alt='';i.src=g.builtin?TI_ART:g.thumb;if(g.builtin)i.style.objectFit='contain';b.append(i)}else b.textContent=(g.name[0]||'?').toUpperCase();
+    on(b,'click',()=>openGame(g));return b}))}
 function measure(){const r=grid.getBoundingClientRect(),L=r.left,T=r.top+scrollY;cards.forEach((c,i)=>{cx[i]=L+c.offsetLeft+c.offsetWidth/2;cy[i]=T+c.offsetTop+c.offsetHeight/2});dirty=true}
 function bend(){
   const th=theta(C.v),W2=document.documentElement.clientWidth/2,H2=innerHeight/2;
@@ -260,8 +293,14 @@ const au=$('#aud');let ti=-1;const urls={};
 const isAud=f=>/\.(mp3|aac|m4a|ogg|oga|opus|wav|flac)$/i.test(f.name)||f.type.startsWith('audio/');
 function playT(i){if(!tracks.length)return;ti=(i+tracks.length)%tracks.length;const t=tracks[ti];au.src=urls[t.id]||=URL.createObjectURL(t.blob);au.play().catch(()=>toast('Press play to start the music.'));drawM()}
 function toggleM(){if(ti<0||!au.getAttribute('src'))return playT(0);au.paused?au.play():au.pause()}
+const sv=d=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
+const IC={prev:sv('M6 5h2v14H6zM20 5v14L9.5 12z'),next:sv('M16 5h2v14h-2zM4 5v14l10.5-7z'),play:sv('M7 4.5v15l13-7.5z'),pause:sv('M6 4h4v16H6zM14 4h4v16h-4z')};
+for(const[i,k]of[['#pv','prev'],['#nx','next'],['#npv','prev'],['#npn','next']])$(i).innerHTML=IC[k];
 function drawM(){
-  const p=!au.paused&&!!au.getAttribute('src');$('#pp').textContent=p?'Pause':'Play';$('#mp').style.color=$('#bm').style.color=p?'var(--ac)':'';
+  const p=!au.paused&&!!au.getAttribute('src'),t=tracks[ti];
+  for(const i of['#pp','#npp']){$(i).innerHTML=p?IC.pause:IC.play;$(i).setAttribute('aria-label',p?'Pause':'Play')}
+  $('#np').hidden=!tracks.length;$('#npt').textContent=t?t.name:'Nothing playing yet';$('#nps').textContent=p?'Now playing':t?'Paused':'Press play';$('#npa').style.setProperty('--h',hue(t?t.name:'music'));
+  $('#mp').style.color=$('#bm').style.color=p?'var(--ac)':'';
   $('#tl').replaceChildren(...tracks.map((t,i)=>{const li=document.createElement('li');li.className=i==ti?'on':'';li.innerHTML='<span></span><button aria-label="Remove track">×</button>';li.firstChild.textContent=t.name;
     on(li,'click',e=>{if(e.target.tagName!='BUTTON')return playT(i);
       if(i==ti){au.pause();au.removeAttribute('src');ti=-1}else if(i<ti)ti--;
@@ -331,8 +370,16 @@ on(window,'drop',e=>{if(!isF(e))return;e.preventDefault();dc=0;dz.classList.remo
 
 /* ---------- settings + init ---------- */
 const panel=$('#panel');
+const setTb=(v,save)=>{document.body.classList.toggle('tb',v);document.documentElement.style.setProperty('--tbh',v?'68px':'0px');if(save)LS.set('tb',+v)};
+$('#tbk').checked=LS.get('tb')==='1';setTb($('#tbk').checked);
+on($('#tbk'),'change',e=>setTb(e.target.checked,1));
+on($('#tbh'),'click',()=>{panel.classList.remove('open');scrollTo({top:0,behavior:'smooth'})});
+on($('#tbs'),'click',()=>panel.classList.toggle('open'));
+on($('#tbf'),'click',()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.());
+const clk=()=>{$('#tbc').textContent=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};clk();setInterval(clk,15000);
+on($('#npv'),'click',()=>playT(ti-1));on($('#npp'),'click',toggleM);on($('#npn'),'click',()=>playT(ti+1));
 on($('#st'),'click',()=>panel.classList.toggle('open'));on($('#x'),'click',()=>panel.classList.remove('open'));
-on(document,'pointerdown',e=>{if(!e.target.closest('#panel,#st'))panel.classList.remove('open')});
+on(document,'pointerdown',e=>{if(!e.target.closest('#panel,#st,#tbs'))panel.classList.remove('open')});
 on(document,'keydown',e=>{if(e.key=='Escape')panel.classList.remove('open')});
 on($('#cv'),'change',e=>{go(B,e.target.checked?1:0);LS.set('cb',+e.target.checked)});
 on($('#cc'),'change',e=>{go(C,e.target.checked?1:0);LS.set('cc',+e.target.checked)});
