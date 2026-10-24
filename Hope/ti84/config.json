@@ -3,6 +3,6 @@
   "rom": "./rom/TI-84-CE.rom",
   "cyclesPerSecond": 48000000,
   "programs": [
-    "programs/arTIfiCE_v2_1.8xp"
+    "programs/arTIfiCE_v2.1.8xp"
   ]
 }
