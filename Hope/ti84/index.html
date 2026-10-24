@@ -23,6 +23,7 @@ h1{font-size:28px;font-weight:800;letter-spacing:-.03em;margin-bottom:20px}h1 i{
 .scr{position:relative;border-radius:10px;overflow:hidden;background:#10131a;border:6px solid #07080d;aspect-ratio:4/3}
 #cv{width:100%;height:100%;display:block;image-rendering:pixelated}
 #msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:#cfd3e6;font-size:15px;background:rgba(16,19,26,.92)}
+#msg{overflow:auto;font-size:13px}#msg strong{display:block;font-size:17px;color:#fff;margin-bottom:6px}#msg ol{text-align:left;max-width:330px;margin:8px auto 14px;padding-left:20px;display:grid;gap:6px}
 #kp{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:20px}
 .k{padding:9px 0;border-radius:9px;font-size:13px;font-weight:700;background:#3b3f55;border:1px solid #0006;box-shadow:0 3px 0 #0008;user-select:none;touch-action:none}
 .k.n{background:#e4e4ee;color:#16171f}.k.s{background:#5aa6ff;color:#06182e}.k.a{background:#6fe3a0;color:#06240f}.k.e{background:#ffa45e;color:#2a1304}
@@ -125,10 +126,14 @@ const dbAll=async()=>(await tx('readonly',o=>o.getAll()))||[],dbPut=v=>tx('readw
 const LS={get:k=>{try{return localStorage.getItem(k)}catch{}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
 
 /* ---------- state ---------- */
-let KM=structuredClone(KM0),Wasm=null,emu=null,rom=null,progs=[],bundled=[],paused=false,speed=1,last=0,raf=0;
+let offN=0,hint=false,KM=structuredClone(KM0),Wasm=null,emu=null,rom=null,progs=[],bundled=[],paused=false,speed=1,last=0,raf=0;
 const cv=$('#cv'),ctx=cv.getContext('2d'),held=new Set(),btn={};
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t.h);t.h=setTimeout(()=>t.classList.remove('on'),4200)}
 function stat(id,cls,txt){const l=$('#s-'+id);l.className=cls;l.lastElementChild.textContent=txt}
+function guide(){
+  const m=$('#msg');m.hidden=false;
+  m.innerHTML='<div><strong>Add your ROM to start</strong><ol><li>Get a ROM file (about 4 MB) dumped from your own TI-84 Plus CE. The README explains where to look.</li><li>Drag it onto this page, or click the button below.</li><li>Optional: drop .8xp or .8xv programs, then press Restart.</li><li>If the screen stays blank, press On (the O key).</li></ol><button class="pri" id="gp">Choose ROM file</button></div>';
+  on($('#gp'),'click',()=>$('#pick').click())}
 const say=t=>{$('#msg').hidden=!t;$('#msg').textContent=t||''};
 const sha=async b=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',b))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const sameSite=p=>{try{return new URL(p,location.href).origin===location.origin}catch{return false}};
@@ -144,21 +149,22 @@ function stop(){cancelAnimationFrame(raf);raf=0}
 function boot(){
   stop();try{emu&&emu.free()}catch{}emu=null;
   if(!Wasm)return say('The emulator build is missing. See the status panel and README.md.');
-  if(!rom)return say('Drop your TI-84 CE ROM here to start.');
+  if(!rom)return guide();
   emu=new Wasm();const r=emu.load_rom(new Uint8Array(rom.bytes));
   if(r!==0){emu=null;stat('rom','bad',rom.name+': '+(ROM_ERR[r]||'load_rom returned '+r));return say('That ROM was rejected by the emulator.')}
   for(const p of [...bundled,...progs]){const c=emu.send_file(new Uint8Array(p.bytes));if(c<0)toast(p.name+': '+(FILE_ERR[c]||'error '+c))}
-  emu.power_on();paused=false;$('#pz').textContent='Pause';last=0;say('');raf=requestAnimationFrame(frame)}
+  emu.power_on();paused=false;$('#pz').textContent='Pause';last=0;say('');offN=0;hint=false;raf=requestAnimationFrame(frame)}
 function frame(t){
   raf=requestAnimationFrame(frame);
   if(paused||!emu)return;
   const dt=last?Math.min(t-last,50):16.7;last=t;
   emu.run_cycles(Math.round(cfg.cyclesPerSecond*dt/1000*speed));
   if(emu.is_lcd_on()){
+    if(hint){hint=false;offN=0;say('')}
     const w=emu.framebuffer_width(),h=emu.framebuffer_height();if(cv.width!=w||cv.height!=h){cv.width=w;cv.height=h}
     ctx.putImageData(new ImageData(new Uint8ClampedArray(emu.get_framebuffer_rgba()),w,h),0,0);
     cv.style.filter='brightness('+Math.max(.35,emu.get_backlight()/255)+')'
-  }else{ctx.fillStyle='#10131a';ctx.fillRect(0,0,cv.width,cv.height)}}
+  }else{ctx.fillStyle='#10131a';ctx.fillRect(0,0,cv.width,cv.height);if(!hint&&++offN>90){hint=true;say('The screen is off. Press On (the O key on your keyboard).')}}}
 
 /* ---------- ROM ---------- */
 async function setRom(buf,name,save){
@@ -242,7 +248,7 @@ on(window,'drop',e=>{if(!isF(e))return;e.preventDefault();dc=0;dz.classList.remo
   await loadBackend();
   const r=(await dbAll()).find(x=>x.k=='rom');
   if(r)await setRom(r.bytes,r.name,false);
-  else{stat('rom','bad','No ROM yet');await loadPath(cfg.rom,true);if(!rom)say(Wasm?'Drop your TI-84 CE ROM here to start.':'The emulator build is missing. See the status panel and README.md.')}
+  else{stat('rom','bad','No ROM yet');await loadPath(cfg.rom,true);if(!rom)Wasm?guide():say('The emulator build is missing. See the status panel and README.md.')}
   window.focus()})();
 </script>
 </body>
