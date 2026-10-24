@@ -1,5 +1,6 @@
 {
   "backend": "./emu/emu_core.js",
   "rom": "./rom/TI-84-CE.rom",
-  "cyclesPerSecond": 48000000
+  "cyclesPerSecond": 48000000,
+  "programs": []
 }
